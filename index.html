@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>เครื่องสร้างข้ออ้างส่งงานช้า</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&family=Mali:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --desk: #d9d2c3;
+    --paper: #fffdf7;
+    --ink: #1d2433;
+    --muted: #5d6474;
+    --line: #c9c2b2;
+    --red: #b3261e;
+    --blue: #1f3f8f;
+    --green: #2e7d32;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--desk);
+    background-image: radial-gradient(rgba(0,0,0,.04) 1px, transparent 1px);
+    background-size: 6px 6px;
+    font-family: "Sarabun", sans-serif;
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 24px 16px 48px;
+  }
+  .app-title {
+    text-align: center;
+    margin: 0 0 18px;
+    font-size: 15px;
+    color: var(--muted);
+    font-weight: 600;
+    letter-spacing: .5px;
+  }
+  .paper {
+    position: relative;
+    max-width: 640px;
+    margin: 0 auto;
+    background: var(--paper);
+    padding: 36px 32px 32px;
+    box-shadow: 0 1px 2px rgba(0,0,0,.08), 0 12px 30px rgba(0,0,0,.15);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .stamp-urgent {
+    position: absolute;
+    top: 22px; right: 18px;
+    border: 3px solid var(--red);
+    color: var(--red);
+    font-weight: 700;
+    font-size: 18px;
+    padding: 2px 10px;
+    transform: rotate(8deg);
+    opacity: .85;
+    border-radius: 4px;
+  }
+  .crest {
+    width: 64px; height: 64px;
+    margin: 0 auto 8px;
+    border: 2px solid var(--ink);
+    border-radius: 50%;
+    display: grid; place-items: center;
+    font-size: 30px;
+  }
+  .doc-head {
+    text-align: center;
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 0 18px;
+  }
+  .meta {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    font-size: 15px;
+    margin-bottom: 12px;
+  }
+  .row { font-size: 16px; margin: 6px 0; line-height: 1.7; }
+  .row b { font-weight: 600; }
+  hr { border: none; border-top: 1px solid var(--line); margin: 14px 0; }
+  .body {
+    font-size: 17px;
+    line-height: 1.95;
+    text-indent: 2.5em;
+    margin: 10px 0 4px;
+    min-height: 5.8em;
+  }
+  .excuse {
+    font-weight: 700;
+    color: var(--blue);
+    text-decoration: underline dotted rgba(31,63,143,.4);
+    text-underline-offset: 5px;
+  }
+  .excuse.pop { animation: pop .45s ease; }
+  @keyframes pop {
+    0% { opacity: 0; filter: blur(4px); }
+    100% { opacity: 1; filter: none; }
+  }
+  .closing { font-size: 17px; line-height: 1.9; text-indent: 2.5em; margin: 4px 0 18px; }
+  .sign {
+    text-align: center;
+    margin-left: auto;
+    width: max-content;
+    max-width: 100%;
+    font-size: 16px;
+    line-height: 1.8;
+  }
+  .sign .scribble {
+    font-family: "Mali", cursive;
+    font-size: 22px;
+    color: var(--blue);
+    transform: rotate(-4deg);
+    display: inline-block;
+  }
+
+  .verdict {
+    margin-top: 22px;
+    border: 2px dashed var(--line);
+    padding: 14px 16px;
+    border-radius: 6px;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+  }
+  .score-stamp {
+    flex: none;
+    width: 88px; height: 88px;
+    border: 3px solid currentColor;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    text-align: center;
+    transform: rotate(-10deg);
+    font-weight: 700;
+    line-height: 1.1;
+  }
+  .score-stamp .num { font-size: 26px; }
+  .score-stamp .lbl { font-size: 11px; font-weight: 600; }
+  .verdict-text .t { font-size: 13px; color: var(--muted); }
+  .verdict-text .c { font-size: 17px; font-weight: 700; margin-top: 2px; }
+  .bar { height: 8px; background: #eee6d6; border-radius: 4px; margin-top: 8px; overflow: hidden; }
+  .bar span { display: block; height: 100%; width: 0; background: currentColor; transition: width .6s ease; }
+
+  .actions {
+    max-width: 640px;
+    margin: 18px auto 0;
+    display: flex;
+    gap: 10px;
+  }
+  button {
+    font-family: inherit;
+    font-size: 17px;
+    font-weight: 700;
+    border: none;
+    border-radius: 10px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: transform .08s ease, opacity .2s;
+  }
+  button:active { transform: scale(.97); }
+  .btn-main { flex: 2; background: var(--red); color: #fff; box-shadow: 0 4px 0 #7d1a15; }
+  .btn-copy { flex: 1; background: var(--paper); color: var(--ink); box-shadow: 0 4px 0 #a9a293; }
+  .footnote { text-align: center; font-size: 13px; color: var(--muted); margin-top: 18px; }
+
+  .toast {
+    position: fixed;
+    left: 50%; bottom: 24px;
+    transform: translate(-50%, 20px);
+    background: var(--ink); color: #fff;
+    padding: 10px 18px; border-radius: 999px;
+    font-size: 15px;
+    opacity: 0; pointer-events: none;
+    transition: all .25s ease;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  /* ตราประทับ */
+  .sign-area { position: relative; min-height: 130px; }
+  .stamp {
+    position: absolute;
+    left: 0; top: 4px;
+    max-width: 58%;
+    padding: 6px 14px 5px;
+    border: 4px double var(--red);
+    border-radius: 6px;
+    color: var(--red);
+    text-align: center;
+    font-weight: 700;
+    line-height: 1.25;
+    mix-blend-mode: multiply;
+    pointer-events: none;
+    opacity: 0;
+    /* ขอบหมึกไม่เรียบเหมือนประทับจริง */
+    -webkit-mask-image: radial-gradient(circle at 30% 40%, #000 60%, rgba(0,0,0,.75) 61%, #000 75%);
+            mask-image: radial-gradient(circle at 30% 40%, #000 60%, rgba(0,0,0,.75) 61%, #000 75%);
+  }
+  .stamp .s-main { font-size: 22px; letter-spacing: .5px; }
+  .stamp .s-sub { font-size: 11px; font-weight: 600; border-top: 1.5px solid currentColor; margin-top: 3px; padding-top: 2px; }
+  .stamp.slam { animation: slam .5s cubic-bezier(.2,.9,.3,1.2) forwards; }
+  @keyframes slam {
+    0%   { opacity: 0; transform: scale(2.8) rotate(var(--rot)); filter: blur(3px); }
+    60%  { opacity: .95; transform: scale(.92) rotate(var(--rot)); filter: none; }
+    100% { opacity: .88; transform: scale(1) rotate(var(--rot)); }
+  }
+  .paper.thud { animation: thud .25s ease .28s; }
+  @keyframes thud {
+    0%,100% { transform: translate(0,0); }
+    30% { transform: translate(1px, 3px); }
+    60% { transform: translate(-1px, -1px); }
+  }
+
+  /* ปุ่มหัวใจ */
+  .btn-heart {
+    flex: none;
+    width: 58px;
+    background: var(--paper);
+    box-shadow: 0 4px 0 #a9a293;
+    font-size: 22px;
+    padding: 10px 0;
+  }
+  .btn-heart.on { background: #ffe4e6; }
+  .btn-heart.beat { animation: beat .35s ease; }
+  @keyframes beat { 50% { transform: scale(1.25); } }
+
+  /* Hall of Fame */
+  .hof { max-width: 640px; margin: 30px auto 0; }
+  .hof h2 {
+    font-size: 20px;
+    margin: 0 0 4px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .hof .count { font-size: 14px; font-weight: 600; color: var(--muted); }
+  .hof .hint { font-size: 14px; color: var(--muted); margin: 0 0 12px; }
+  .hof-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+  .hof-item {
+    background: var(--paper);
+    border-left: 4px solid var(--red);
+    border-radius: 4px;
+    padding: 12px 12px 10px 14px;
+    box-shadow: 0 2px 6px rgba(0,0,0,.08);
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .hof-item .txt { flex: 1; min-width: 0; font-size: 15px; line-height: 1.7; }
+  .hof-item .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; font-size: 12px; }
+  .hof-item .tag { border: 1.5px solid var(--red); color: var(--red); padding: 0 6px; border-radius: 3px; font-weight: 700; }
+  .hof-item .tag.score { border-color: var(--blue); color: var(--blue); }
+  .hof-item .mini {
+    flex: none;
+    background: none; box-shadow: none;
+    font-size: 16px; padding: 4px 6px; border-radius: 6px;
+    color: var(--muted);
+  }
+  .hof-item .mini:hover { background: #eee6d6; }
+  .hof-empty {
+    text-align: center; color: var(--muted); font-size: 15px;
+    border: 2px dashed #b9b1a0; border-radius: 6px; padding: 20px 12px;
+  }
+
+  @media (max-width: 480px) {
+    .stamp .s-main { font-size: 18px; }
+    .stamp { max-width: 62%; padding: 5px 10px 4px; }
+    .paper { padding: 28px 18px 22px; }
+    .doc-head { font-size: 21px; }
+    .stamp-urgent { font-size: 14px; top: 14px; right: 10px; }
+    .crest { width: 54px; height: 54px; font-size: 26px; }
+    .body, .closing { font-size: 16px; }
+    .score-stamp { width: 76px; height: 76px; }
+    .score-stamp .num { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+  <p class="app-title">📝 เครื่องสร้างข้ออ้างส่งงานช้า</p>
+
+  <main class="paper" id="paper">
+    <div class="stamp-urgent">ด่วนที่สุด</div>
+    <div class="crest" aria-hidden="true">🐢</div>
+    <h1 class="doc-head">หนังสือชี้แจงเหตุผล</h1>
+
+    <div class="meta">
+      <span>ที่ ขอ. <span id="docNo"></span></span>
+      <span>วันที่ <span id="docDate"></span></span>
+    </div>
+    <div class="row"><b>เรื่อง</b>&nbsp; ขอชี้แจงเหตุสุดวิสัยกรณีส่งงานล่าช้ากว่ากำหนด</div>
+    <div class="row"><b>เรียน</b>&nbsp; อาจารย์ผู้สอนที่เคารพรักยิ่ง</div>
+    <div class="row"><b>สิ่งที่ส่งมาด้วย</b>&nbsp; ความจริงใจ จำนวน ๑ หัวใจ</div>
+    <hr>
+
+    <p class="body">
+      ตามที่อาจารย์ได้มอบหมายงานให้ส่งภายในกำหนดนั้น ข้าพเจ้าขอเรียนชี้แจงด้วยความเคารพว่า ข้าพเจ้าได้ตั้งใจทำงานอย่างเต็มกำลังความสามารถแล้ว แต่เนื่องจาก
+      <span class="excuse" id="excuse">…</span>
+    </p>
+    <p class="closing">
+      จึงเรียนมาเพื่อโปรดทราบและพิจารณาขยายเวลาส่งงานด้วยความเมตตา ข้าพเจ้าสัญญาว่าจะไม่เกิดเหตุการณ์เช่นนี้ขึ้นอีก (ในสัปดาห์นี้)
+    </p>
+
+    <div class="sign-area">
+      <div class="stamp" id="stamp" aria-live="polite">
+        <div class="s-main" id="stampText">อนุมัติ</div>
+        <div class="s-sub">ฝ่ายพิจารณาข้ออ้าง</div>
+      </div>
+      <div class="sign">
+        ขอแสดงความนับถือ<br>
+        <span class="scribble">นศ.ผู้บริสุทธิ์</span><br>
+        (นักศึกษาผู้ไม่ได้ตั้งใจ)<br>
+        ผู้ประสบภัยข้ออ้างแห่งชาติ
+      </div>
+    </div>
+
+    <div class="verdict" id="verdict">
+      <div class="score-stamp" id="scoreStamp">
+        <div><div class="num" id="score">0%</div><div class="lbl">น่าเชื่อถือ</div></div>
+      </div>
+      <div class="verdict-text" style="flex:1">
+        <div class="t">ผลการประเมินโดยคณะกรรมการตรวจสอบข้ออ้าง</div>
+        <div class="c" id="comment">—</div>
+        <div class="bar"><span id="bar"></span></div>
+      </div>
+    </div>
+  </main>
+
+  <div class="actions">
+    <button class="btn-main" id="genBtn">🎲 สุ่มข้ออ้างใหม่</button>
+    <button class="btn-copy" id="copyBtn">📋 คัดลอก</button>
+    <button class="btn-heart" id="heartBtn" aria-label="บันทึกเข้า Hall of Fame">🤍</button>
+  </div>
+  <p class="footnote">* ใช้เพื่อความบันเทิงเท่านั้น ผลลัพธ์จริงขึ้นอยู่กับอารมณ์อาจารย์ในวันนั้น</p>
+
+  <section class="hof">
+    <h2>🏆 Hall of Fame <span class="count" id="hofCount"></span></h2>
+    <p class="hint">ข้ออ้างระดับตำนานที่คุณกดหัวใจเก็บไว้ (บันทึกไว้ในเครื่องนี้)</p>
+    <ul class="hof-list" id="hofList"></ul>
+  </section>
+
+  <div class="toast" id="toast">คัดลอกแล้ว! ไปส่งต่อได้เลย</div>
+
+<script>
+const culprits = [
+  "แมวของข้าพเจ้า",
+  "รูมเมทที่หอ",
+  "ป้าเจ้าของหอ",
+  "พี่วินมอไซค์หน้ามหาวิทยาลัย",
+  "Wi-Fi ของมหาวิทยาลัย",
+  "หมาจรหน้าคณะ",
+  "จิ้งจกประจำห้องพัก",
+  "เพื่อนร่วมกลุ่มที่ไม่เคยอ่านแชท",
+  "ยามหน้าหอ",
+  "ป้าร้านส้มตำหน้ามหาวิทยาลัย",
+  "ฝนที่ไม่ได้อยู่ในพยากรณ์อากาศ",
+  "โน้ตบุ๊กมือสองที่ซื้อต่อจากรุ่นพี่",
+  "คุณแม่ที่โทรมาตอนตีสอง",
+  "ไรเดอร์ส่งอาหาร",
+  "แฟนเก่า",
+  "รถสองแถวสายสีแดง",
+  "ปลั๊กพ่วงราคา 99 บาท",
+  "ห้องข้างๆ ที่ร้องคาราโอเกะทุกคืน",
+  "Windows Update",
+  "ตุ๊กแกหลังตู้เย็น",
+  "AI ที่ข้าพเจ้าใช้ตรวจคำผิด",
+  "กระรอกแถวตึกเรียนรวม",
+  "รุ่นพี่สายรหัส",
+  "หมอดูหน้าวัด"
+];
+
+const events = [
+  "นั่งทับคีย์บอร์ดตอนกด Ctrl+A",
+  "เผลอกัดสายแลนขาดกลางดึก",
+  "บังคับให้ข้าพเจ้าไปงานบวชญาติแบบกะทันหัน",
+  "ขี่รถพาข้าพเจ้าหลงไปถึงอีกอำเภอ",
+  "หลุดทุกครั้งที่ข้าพเจ้ากดปุ่ม Submit",
+  "ไล่กวดข้าพเจ้าตั้งแต่ประตูมหาวิทยาลัยถึงหน้าหอ",
+  "คลานเข้าไปทำรังในพัดลมโน้ตบุ๊ก",
+  "ทำให้น้ำท่วมซอยหน้าหอสูงถึงเอว",
+  "ส่งไฟล์รูปแมวไปแทนรายงาน",
+  "ตัดไฟทั้งชั้นเพราะมีคนค้างค่าไฟ",
+  "ทำชาไทยเย็นหกใส่โน้ตบุ๊กทั้งแก้ว",
+  "อัปเดตตัวเองค้างอยู่ที่ 47% ทั้งคืน",
+  "ล็อกห้องข้าพเจ้าจากข้างนอกแล้วกลับบ้านต่างจังหวัด",
+  "เอาแฟลชไดรฟ์งานของข้าพเจ้าไปเสียบดูซีรีส์",
+  "ส่งข้อความผิดกลุ่มจนข้าพเจ้าต้องหนีออกจากไลน์ทั้งคืน",
+  "เปลี่ยนรหัสเน็ตหอโดยไม่บอกใคร",
+  "ทำนายว่าห้ามเปิดคอมพิวเตอร์ก่อนพระจันทร์เต็มดวง",
+  "ทำให้ข้าพเจ้าติดอยู่ในลิฟต์หอนาน 6 ชั่วโมง",
+  "แก้ไฟล์ Word จนฟอนต์กลายเป็นภาษาต่างดาว",
+  "แอบยืมสายชาร์จไปแล้วไม่คืนมาสามวัน",
+  "ชวนข้าพเจ้าไปกินหมูกระทะ 'แค่แป๊บเดียว' ตอนสองทุ่ม",
+  "เปิดเพลงลูกทุ่งดังจนจอคอมสั่น",
+  "นอนขวางประตูห้องไม่ยอมให้ข้าพเจ้าเข้าไปทำงาน"
+];
+
+const results = [
+  "จนรายงานหายหมดทั้ง 20 หน้า",
+  "ทำให้ไฟล์เหลือแค่คำว่า \"บทที่ 1\"",
+  "ไฟล์จึงกลายเป็น .exe ที่ไม่มีโปรแกรมไหนเปิดได้",
+  "ข้าพเจ้าจึงต้องพิมพ์ใหม่ทั้งหมดบนมือถือด้วยนิ้วเดียว",
+  "จนงานลอยไปกับน้ำพร้อมรองเท้าแตะหนึ่งข้าง",
+  "สุดท้ายเหลือเพียงปกรายงานกับความทรงจำ",
+  "จนต้องไปนั่งทำต่อที่ร้านสะดวกซื้อแล้วโดนเชิญออกตอนตีสาม",
+  "ทำให้ Google Drive แจ้งว่า \"ไม่พบไฟล์\" อย่างเย็นชา",
+  "ข้าพเจ้าจึงต้องไปบนบานศาลกล่าวขอให้ไฟล์กลับมา",
+  "จนข้าพเจ้าเป็นลมไปสามวัน ตื่นมาก็เลยกำหนดส่งแล้ว",
+  "ทำให้ทุกหน้ามีแต่ตัวอักษร \"ฟฟฟฟฟฟฟฟฟฟ\"",
+  "รายงานจึงอยู่ในสภาพที่ไม่ควรให้อาจารย์เห็นเพื่อสุขภาพจิตของอาจารย์",
+  "ทำให้เครื่องปริ้นห้องสมุดกินกระดาษไปทั้งรีม",
+  "ไฟล์สุดท้ายที่เหลือชื่อ \"final_จริงๆ_v9\" แต่เป็นเวอร์ชันที่ยังไม่ได้เริ่มทำ",
+  "ข้าพเจ้าจึงตัดสินใจรักษาจิตใจก่อนรักษาเกรด",
+  "ทำให้รายงานถูกส่งไปหาอาจารย์คณะอื่นแทน",
+  "จนกระดาษเปียกน้ำ ตัวหนังสือละลายเป็นภาพแอบสแตรกต์",
+  "ข้าพเจ้าจึงต้องไปทำบุญสะเดาะเคราะห์ 7 วัด",
+  "ทำให้เน็ตหมุนค้างที่ 99% จนฟ้าสาง",
+  "จนข้าพเจ้าลืมไปเลยว่าลงทะเบียนวิชานี้ไว้",
+  "ทำให้โน้ตบุ๊กดับแล้วมีกลิ่นหมูปิ้งออกมา",
+  "จนไฟล์ถูกเซฟทับด้วยใบเสร็จค่าหอเดือนที่แล้ว",
+  "ข้าพเจ้าจึงต้องเริ่มชีวิตใหม่ตั้งแต่ศูนย์ (รวมถึงรายงานด้วย)"
+];
+
+const verdicts = [
+  { max: 9,   text: "อาจารย์หัวเราะแต่ไม่เชื่อ", color: "#b3261e" },
+  { max: 24,  text: "อาจารย์จะแคปไปลงกลุ่มไลน์อาจารย์", color: "#c2410c" },
+  { max: 39,  text: "ขอให้โชคดี เตรียมใจรับ F", color: "#b45309" },
+  { max: 54,  text: "ครึ่งๆ กลางๆ แนบรูปประกอบอาจช่วยได้", color: "#8a6d00" },
+  { max: 69,  text: "พอฟังขึ้น ถ้าพูดพร้อมน้ำตาคลอ", color: "#4d7c0f" },
+  { max: 84,  text: "น่าเชื่อเกินคาด อาจารย์เริ่มลังเล", color: "#2e7d32" },
+  { max: 100, text: "อันนี้รอดแน่ อาจารย์อาจส่งกำลังใจมาให้ด้วย", color: "#1f3f8f" }
+];
+
+const stamps = [
+  "อนุมัติ (มั้ง)",
+  "ปฏิเสธ",
+  "รอพิจารณา 3-5 ปี",
+  "อนุมัติแบบงงๆ",
+  "ไม่อนุมัติ แต่เห็นใจ",
+  "ส่งต่อให้ฝ่ายหัวเราะ",
+  "เอกสารไม่ครบ (ขาดความจริง)",
+  "ตีกลับ กรุณาแต่งใหม่",
+  "อ่านแล้ว แต่ไม่ตอบ",
+  "อนุมัติ เพราะขำ",
+  "ผ่าน! อย่าทำอีก",
+  "รอคิว ลำดับที่ 4,812",
+  "เก็บเข้าแฟ้มตำนาน",
+  "พิจารณาเมื่อชาติหน้า"
+];
+
+const $ = id => document.getElementById(id);
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+const thaiDigits = s => String(s).replace(/\d/g, d => "๐๑๒๓๔๕๖๗๘๙"[d]);
+
+let current = { excuse: "", score: 0, comment: "" };
+let last = "";
+
+function generate() {
+  let excuse;
+  do {
+    excuse = `${pick(culprits)} ${pick(events)} ${pick(results)}`;
+  } while (excuse === last);
+  last = excuse;
+
+  const score = Math.floor(Math.random() * 100) + 1;
+  const v = verdicts.find(x => score <= x.max);
+  const stampWord = pick(stamps);
+  current = { excuse, score, comment: v.text, stamp: stampWord };
+  slamStamp(stampWord);
+  updateHeart();
+
+  const el = $("excuse");
+  el.textContent = excuse;
+  el.classList.remove("pop"); void el.offsetWidth; el.classList.add("pop");
+
+  $("score").textContent = score + "%";
+  $("comment").textContent = v.text;
+  $("verdict").style.color = v.color;
+  $("comment").style.color = v.color;
+  $("bar").style.width = score + "%";
+
+  $("docNo").textContent = thaiDigits(Math.floor(Math.random() * 900) + 100) + "/" + thaiDigits(new Date().getFullYear() + 543);
+}
+
+function slamStamp(word) {
+  const s = $("stamp"), paper = $("paper");
+  $("stampText").textContent = word;
+  s.style.setProperty("--rot", (Math.random() * 24 - 16).toFixed(1) + "deg");
+  s.style.left = (Math.random() * 8) + "%";
+  s.classList.remove("slam"); paper.classList.remove("thud");
+  void s.offsetWidth;
+  s.classList.add("slam"); paper.classList.add("thud");
+}
+
+/* ---------- Hall of Fame (localStorage) ---------- */
+const HOF_KEY = "excuse-hall-of-fame";
+let hof = loadHof();
+
+function loadHof() {
+  try {
+    const data = JSON.parse(localStorage.getItem(HOF_KEY) || "[]");
+    return Array.isArray(data) ? data : [];
+  } catch (e) { return []; }
+}
+function saveHof() {
+  try { localStorage.setItem(HOF_KEY, JSON.stringify(hof)); } catch (e) {}
+}
+const isSaved = text => hof.some(h => h.excuse === text);
+
+function updateHeart() {
+  const on = isSaved(current.excuse);
+  const b = $("heartBtn");
+  b.textContent = on ? "❤️" : "🤍";
+  b.classList.toggle("on", on);
+}
+
+function toggleHeart() {
+  const b = $("heartBtn");
+  if (isSaved(current.excuse)) {
+    hof = hof.filter(h => h.excuse !== current.excuse);
+    showToast("เอาออกจาก Hall of Fame แล้ว");
+  } else {
+    hof.unshift({ ...current, at: Date.now() });
+    hof = hof.slice(0, 100);
+    showToast("บันทึกเข้า Hall of Fame แล้ว ❤️");
+  }
+  saveHof();
+  updateHeart();
+  renderHof();
+  b.classList.remove("beat"); void b.offsetWidth; b.classList.add("beat");
+}
+
+function renderHof() {
+  const list = $("hofList");
+  list.innerHTML = "";
+  $("hofCount").textContent = hof.length ? `(${hof.length})` : "";
+  if (!hof.length) {
+    list.innerHTML = '<li class="hof-empty">ยังว่างเปล่า… กด 🤍 ที่ข้ออ้างที่ชอบเพื่อเก็บไว้ตรงนี้</li>';
+    return;
+  }
+  hof.forEach((h, i) => {
+    const li = document.createElement("li");
+    li.className = "hof-item";
+
+    const txt = document.createElement("div");
+    txt.className = "txt";
+    txt.textContent = h.excuse;
+    const tags = document.createElement("div");
+    tags.className = "tags";
+    const t1 = document.createElement("span");
+    t1.className = "tag score"; t1.textContent = `น่าเชื่อ ${h.score}%`;
+    tags.appendChild(t1);
+    if (h.stamp) {
+      const t2 = document.createElement("span");
+      t2.className = "tag"; t2.textContent = h.stamp;
+      tags.appendChild(t2);
+    }
+    txt.appendChild(tags);
+
+    const copy = document.createElement("button");
+    copy.className = "mini"; copy.textContent = "📋"; copy.title = "คัดลอก";
+    copy.setAttribute("aria-label", "คัดลอกข้ออ้างนี้");
+    copy.onclick = () => copyText(buildCopyText(h));
+
+    const del = document.createElement("button");
+    del.className = "mini"; del.textContent = "✕"; del.title = "ลบ";
+    del.setAttribute("aria-label", "ลบออกจาก Hall of Fame");
+    del.onclick = () => {
+      hof.splice(i, 1);
+      saveHof(); renderHof(); updateHeart();
+    };
+
+    li.append(txt, copy, del);
+    list.appendChild(li);
+  });
+}
+
+function buildCopyText(item = current) {
+  return [
+    "📄 หนังสือชี้แจงเหตุผล",
+    "เรียน อาจารย์ผู้สอนที่เคารพรักยิ่ง",
+    "",
+    `ข้าพเจ้าขอเรียนชี้แจงด้วยความเคารพว่า ข้าพเจ้าได้ตั้งใจทำงานอย่างเต็มกำลังแล้ว แต่เนื่องจาก${item.excuse}`,
+    "",
+    "จึงเรียนมาเพื่อโปรดทราบและพิจารณาขยายเวลาส่งงานด้วยความเมตตา 🙏",
+    "",
+    `(ระดับความน่าเชื่อ: ${item.score}% — ${item.comment})`,
+    item.stamp ? `🟥 ผลพิจารณา: [${item.stamp}]` : ""
+  ].filter((line, i, arr) => line !== "" || i < arr.length - 1).join("\n");
+}
+
+function showToast(msg) {
+  const t = $("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(showToast.timer);
+  showToast.timer = setTimeout(() => t.classList.remove("show"), 1800);
+}
+
+function fallbackCopy(text) {
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.setAttribute("readonly", "");
+  ta.style.position = "fixed";
+  ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.select();
+  ta.setSelectionRange(0, text.length);
+  let ok = false;
+  try { ok = document.execCommand("copy"); } catch (e) {}
+  document.body.removeChild(ta);
+  return ok;
+}
+
+async function copyText(text) {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return showToast("คัดลอกแล้ว! ไปส่งต่อได้เลย");
+    }
+  } catch (e) {}
+  showToast(fallbackCopy(text) ? "คัดลอกแล้ว! ไปส่งต่อได้เลย" : "คัดลอกไม่สำเร็จ ลองกดค้างที่ข้อความแทนนะ");
+}
+
+$("docDate").textContent = new Date().toLocaleDateString("th-TH-u-nu-thai", { day: "numeric", month: "long", year: "numeric" });
+$("genBtn").addEventListener("click", generate);
+$("copyBtn").addEventListener("click", () => copyText(buildCopyText()));
+$("heartBtn").addEventListener("click", toggleHeart);
+renderHof();
+generate();
+</script>
+</body>
+</html>
